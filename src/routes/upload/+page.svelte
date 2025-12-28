@@ -525,7 +525,7 @@ $: currentWordIndex = duration > 0
             </div>
           {:else}
             <textarea
-              class="form-control custom-input transcript-area"
+              class="form-control form-control-custom w-100 custom-input transcript-area"
               rows="28"
               spellcheck="false"
               bind:value={editableTranscript}
@@ -656,7 +656,8 @@ $: currentWordIndex = duration > 0
           <p class="text-light-muted small mb-3">Enter the email address where you'd like to send this transcription and analysis.</p>
           <div class="mb-3">
             <label class="form-label small text-light-muted">Recipient Email</label>
-            <input type="email" class="form-control custom-input" placeholder="colleague@company.com" />
+            <input type="email" class="form-control
+            form-control-custom w-100 custom-input" placeholder="colleague@company.com" />
           </div>
         </div>
         <div class="modal-footer border-0">
@@ -914,6 +915,30 @@ $: currentWordIndex = duration > 0
   border: 1px solid var(--indigo-primary);
   text-transform: uppercase;
   z-index: 5;
+}
+
+/* Targeted styles for your inputs */
+.form-control-custom {
+  background: rgba(255, 255, 255, 0.05); /* Subtle dark background */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff !important; /* Forces typed text to be white */
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Make placeholder text clearly visible (Light Gray) */
+.form-control-custom::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1; /* Firefox fix */
+}
+
+/* Ensure visibility when clicking/focusing */
+.form-control-custom:focus {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: #6366f1; /* Your indigo theme color */
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  outline: none;
 }
 
 
