@@ -1,33 +1,59 @@
 <script>
+
+  import { 
+    meetingTypeStore, 
+    transcriptStore, 
+    summaryStore, 
+    actionItemsStore, 
+    highlightsStore, 
+    keyDecisionsStore, 
+    toneResultStore, 
+    speakerMapStore 
+  } from '$lib/store.js';
+  import { onMount } from 'svelte';
+
+
   /* Script logic remains untouched as requested */
   let file = null;
   let audioUrl = "";
-  let meetingType = "";
   let loading = false;
-  let transcript = "";
   let error = "";
   let copied = false;
 
-  let summary = "";
   let summaryLoading = false;
   let summaryCopied = false;
 
-  let actionItems = "";
   let actionItemsLoading = false;
   let actionItemsCopied = false;
 
-  let highlights = "";
   let highlightsLoading = false;
   let highlightsCopied = false;
 
-  let keyDecisions = "";
   let keyDecisionsLoading = false;
   let keyDecisionsCopied = false;
 
   // Tone state
-  let toneResult = null;
   let toneLoading = false;
   let toneError = "";
+
+  let meetingType = $meetingTypeStore || "";
+  let transcript = $transcriptStore || "";
+  let summary = $summaryStore || "";
+  let actionItems = $actionItemsStore || "";
+  let highlights = $highlightsStore || "";
+  let keyDecisions = $keyDecisionsStore || "";
+  let toneResult = $toneResultStore || null;
+  let speakerMap = $speakerMapStore || {};
+
+  // Whenever 'transcript' changes locally, update the persisted store automatically
+  $: $transcriptStore = transcript;
+  $: $summaryStore = summary;
+  $: $meetingTypeStore = meetingType;
+  $: $actionItemsStore = actionItems;
+  $: $highlightsStore = highlights;
+  $: $keyDecisionsStore = keyDecisions;
+  $: $toneResultStore = toneResult;
+  $: $speakerMapStore = speakerMap;
 
   function handleFileChange(e) {
     file = e.target.files[0];
@@ -211,11 +237,15 @@
   }
 
     // ===== Speaker rename + editable transcript (ADDED) =====
-  let speakerMap = {}; // { SPEAKER_00: "CEO" }
+  // { SPEAKER_00: "CEO" }
   let activeSpeakerId = null;
   let tempSpeakerName = "";
 
-  let editableTranscript = "";
+// Instead of "", use the same logic you used for the speaker mapping
+  let editableTranscript = ($transcriptStore || "").replace(
+    /Speaker\s+(SPEAKER_\d+)/g,
+    (_, id) => `Speaker ${speakerMap[id] || id}`
+  );
 
   // Extract speaker IDs
   $: speakerIds = Array.from(
@@ -265,13 +295,13 @@
     ).show();
   }
 
-  function saveSpeakerName() {
+function saveSpeakerName() {
     if (activeSpeakerId) {
-      speakerMap[activeSpeakerId] =
-        tempSpeakerName.trim() || activeSpeakerId;
+      // Use the $ prefix to ensure the reactive store assignment triggers
+      $speakerMapStore[activeSpeakerId] = tempSpeakerName.trim() || activeSpeakerId;
+      // Re-assign to local for UI reactivity
+      speakerMap = $speakerMapStore; 
     }
-    activeSpeakerId = null;
-    tempSpeakerName = "";
   }
 
   let isPlaying = false;
@@ -320,6 +350,27 @@ $: currentWordIndex = duration > 0
     ? Math.floor(((currentTime + lookAheadOffset) / duration) * highlightWords.length) 
     : 0;
 
+    function clearSession() {
+  if (confirm("This will permanently delete the current transcript and all AI insights. Continue?")) {
+    // Reset local variables
+    transcript = "";
+    summary = "";
+    meetingType = "";
+    actionItems = "";
+    highlights = "";
+    keyDecisions = "";
+    toneResult = null;
+    speakerMap = {};
+    
+    // Reset UI state
+    file = null;
+    audioUrl = "";
+    editableTranscript = "";
+    
+    // The reactive $: statements will automatically update the stores to ""
+  }
+}
+
 </script>
 
 <div class="upload-page-wrapper">
@@ -363,10 +414,15 @@ $: currentWordIndex = duration > 0
             </select>
           </div>
 
-          <div class="col-md-4">
-            <button class="btn btn-indigo-glow w-100 py-2" disabled={loading || !file || !meetingType} on:click={uploadAudio}>
-              <i class="fa-solid {loading ? 'fa-spinner fa-spin' : 'fa-play-circle'} me-2"></i>
+          <div class="col-md-4 d-flex gap-2">
+            <button class="btn btn-indigo-glow flex-grow-1 py-2">
               {loading ? "Analyzing…" : "Transcribe"}
+            </button>
+            
+            <button class="btn btn-outline-glass border-danger text-danger px-3" 
+              title="Clear all data" 
+              on:click={clearSession}>
+              <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
         </div>
