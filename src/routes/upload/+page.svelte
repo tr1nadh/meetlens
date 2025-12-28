@@ -350,26 +350,26 @@ $: currentWordIndex = duration > 0
     ? Math.floor(((currentTime + lookAheadOffset) / duration) * highlightWords.length) 
     : 0;
 
-    function clearSession() {
-  if (confirm("This will permanently delete the current transcript and all AI insights. Continue?")) {
-    // Reset local variables
-    transcript = "";
-    summary = "";
-    meetingType = "";
-    actionItems = "";
-    highlights = "";
-    keyDecisions = "";
-    toneResult = null;
-    speakerMap = {};
-    
-    // Reset UI state
-    file = null;
-    audioUrl = "";
-    editableTranscript = "";
-    
-    // The reactive $: statements will automatically update the stores to ""
+  function clearSession() {
+    if (confirm("This will permanently delete the current transcript and all AI insights. Continue?")) {
+      // Reset local variables
+      transcript = "";
+      summary = "";
+      meetingType = "";
+      actionItems = "";
+      highlights = "";
+      keyDecisions = "";
+      toneResult = null;
+      speakerMap = {};
+      
+      // Reset UI state
+      file = null;
+      audioUrl = "";
+      editableTranscript = "";
+      
+      // The reactive $: statements will automatically update the stores to ""
+    }
   }
-}
 
 </script>
 
@@ -415,9 +415,16 @@ $: currentWordIndex = duration > 0
           </div>
 
           <div class="col-md-4 d-flex gap-2">
-            <button class="btn btn-indigo-glow flex-grow-1 py-2">
-              {loading ? "Analyzing…" : "Transcribe"}
-            </button>
+          <button 
+            class="btn btn-indigo-glow flex-grow-1 py-2" 
+            on:click={uploadAudio} 
+            disabled={loading || !file || !meetingType}>
+              {#if loading}
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Analyzing…
+              {:else}
+                Transcribe
+              {/if}
+          </button>
             
             <button class="btn btn-outline-glass border-danger text-danger px-3" 
               title="Clear all data" 
@@ -547,12 +554,12 @@ $: currentWordIndex = duration > 0
               </div>
               <div class="result-box small mb-3 italic">"{toneResult.summary}"</div>
               
-              <button class="btn btn-sm btn-outline-indigo w-100" on:click={analyzeTone}>
+              <button class="btn btn-outline-indigo w-100" on:click={analyzeTone}>
                 <i class="fa-solid fa-rotate-right me-1"></i> Re-analyze Tone
               </button>
             {:else}
               <p class="text-light-muted small mb-3">Detect emotional landscape and confidence levels.</p>
-              <button class="btn btn-sm btn-indigo-glow w-100" disabled={!transcript.trim()} on:click={analyzeTone}>
+              <button class="btn btn-indigo-glow w-100" disabled={!transcript.trim()} on:click={analyzeTone}>
                 Analyze Tone
               </button>
             {/if}
@@ -569,11 +576,11 @@ $: currentWordIndex = duration > 0
               <div class="text-light-muted small mb-3 animate-pulse">Generating summary...</div>
             {:else if summary}
               <p class="small text-light-muted leading-relaxed">{summary}</p>
-              <button class="btn btn-sm btn-outline-purple w-100 mt-2" on:click={generateSummary}>
+              <button class="btn btn-outline-purple w-100 mt-2" on:click={generateSummary}>
                 <i class="fa-solid fa-rotate-right me-1"></i> Re-generate Summary
               </button>
             {:else}
-              <button class="btn btn-sm btn-purple-glow w-100" disabled={!transcript.trim()} on:click={generateSummary}>Generate Summary</button>
+              <button class="btn btn-purple-glow w-100" disabled={!transcript.trim()} on:click={generateSummary}>Generate Summary</button>
             {/if}
           </div>
         </div>
@@ -585,11 +592,11 @@ $: currentWordIndex = duration > 0
               <div class="text-light-muted small mb-3">Extracting decisions...</div>
             {:else if keyDecisions}
               <div class="result-box small mb-3">{keyDecisions}</div>
-              <button class="btn btn-sm btn-outline-indigo w-100" on:click={generateKeyDecisions}>
+              <button class="btn btn-outline-indigo w-100" on:click={generateKeyDecisions}>
                 <i class="fa-solid fa-rotate-right me-1"></i> Re-extract Decisions
               </button>
             {:else}
-              <button class="btn btn-sm btn-outline-indigo w-100" disabled={!transcript.trim()} on:click={generateKeyDecisions}>Get Key Decisions</button>
+              <button class="btn btn-outline-indigo w-100" disabled={!transcript.trim()} on:click={generateKeyDecisions}>Get Key Decisions</button>
             {/if}
           </div>
         </div>
@@ -601,11 +608,11 @@ $: currentWordIndex = duration > 0
               <div class="text-light-muted small mb-3">Extracting items...</div>
             {:else if actionItems}
               <div class="result-box small mb-3">{actionItems}</div>
-              <button class="btn btn-sm btn-outline-emerald w-100" on:click={generateActionItems}>
+              <button class="btn btn-outline-emerald w-100" on:click={generateActionItems}>
                 <i class="fa-solid fa-rotate-right me-1"></i> Re-extract Items
               </button>
             {:else}
-              <button class="btn btn-sm btn-emerald-glow w-100" disabled={!transcript.trim()} on:click={generateActionItems}>Get Action Items</button>
+              <button class="btn btn-emerald-glow w-100" disabled={!transcript.trim()} on:click={generateActionItems}>Get Action Items</button>
             {/if}
           </div>
         </div>
