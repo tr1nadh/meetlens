@@ -551,48 +551,9 @@ $: currentWordIndex = duration > 0
                 </button>
             </div>
             <div class="col-6">
-                <!-- <button class="btn btn-outline-glass w-100 py-2 text-white" disabled={!transcript.trim()} data-bs-toggle="modal" data-bs-target="#shareModal">
-                    <i class="fa-solid fa-share-nodes me-2"></i> Share Result
-                </button> -->
-                <ShareReport />
+              <ShareReport />
             </div>
         </div>
-
-        <!-- <div class="card glass-card mb-3">
-          <div class="card-body p-4">
-            <h5 class="text-white fw-bold mb-3">
-              <i class="fa-solid fa-ear-listen me-2 text-indigo"></i>
-              Tone Analysis
-            </h5>
-
-            {#if toneLoading}
-              <div class="text-indigo mb-2 small animate-pulse">
-                <i class="fa-solid fa-spinner fa-spin me-2"></i> Analyzing conversation...
-              </div>
-            {:else if toneResult}
-              <div class="tone-grid mb-3">
-                <div class="tone-item">
-                  <span class="small text-light-muted d-block">Overall Tone</span>
-                  <span class="badge badge-indigo">{toneResult.tone}</span>
-                </div>
-                <div class="tone-item">
-                  <span class="small text-light-muted d-block">Sentiment</span>
-                  <span class="text-white small fw-bold">{toneResult.sentiment}</span>
-                </div>
-              </div>
-              <div class="result-box small mb-3 italic">"{toneResult.summary}"</div>
-              
-              <button class="btn btn-outline-indigo w-100" on:click={analyzeTone}>
-                <i class="fa-solid fa-rotate-right me-1"></i> Re-analyze Tone
-              </button>
-            {:else}
-              <p class="text-light-muted small mb-3">Detect emotional landscape and confidence levels.</p>
-              <button class="btn btn-indigo-glow w-100" disabled={!transcript.trim()} on:click={analyzeTone}>
-                Analyze Tone
-              </button>
-            {/if}
-          </div>
-        </div> -->
 
         <ToneAnalysis 
           {transcript} 
