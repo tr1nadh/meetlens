@@ -399,7 +399,8 @@ $: currentWordIndex = duration > 0
           MeetLens
         </h4>
         <p class="text-light-muted mb-4">
-          Upload audio, choose its type, and generate a clean transcript with AI insights.
+          Upload audio <span class="text-primary">(WAV, MP3, M4A | MAX 30min)</span>,
+           choose its type, and generate a clean transcript with AI insights.
         </p>
 
         <div class="row g-3 align-items-end">

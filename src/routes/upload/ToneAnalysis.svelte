@@ -65,14 +65,14 @@
             {/each}
           </div>
         </div>
-
+<!-- 
         <div class="mb-3">
           <span class="text-light-muted small d-block mb-2">EXECUTIVE SUMMARY</span>
           <div class="result-box-enterprise">
             <i class="fa-solid fa-quote-left me-2 text-purple opacity-75"></i>
             {toneResult.summary}
           </div>
-        </div>
+        </div> -->
         
         <button class="btn btn-outline-indigo w-100 py-2 mt-2" on:click={analyzeTone}>
           <i class="fa-solid fa-rotate-right me-2"></i> Re-analyze Tone
