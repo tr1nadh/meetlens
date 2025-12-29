@@ -617,29 +617,6 @@ $: currentWordIndex = duration > 0
   </div>
 </div>
 
-  <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content glass-card p-2">
-          <div class="modal-header border-0">
-            <h5 class="modal-title text-white fw-bold">Share Report</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-light-muted small mb-3">Enter the email address where you'd like to send this transcription and analysis.</p>
-            <div class="mb-3">
-              <label class="form-label small text-light-muted">Recipient Email</label>
-              <input type="email" class="form-control
-              form-control-custom w-100 custom-input" placeholder="colleague@company.com" />
-            </div>
-          </div>
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-outline-glass text-white px-4" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-indigo-glow px-4">Send Result</button>
-          </div>
-        </div>
-      </div>
-  </div>
-
 <style>
   :root {
     --bg-dark: #070910;
