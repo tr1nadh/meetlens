@@ -1,20 +1,12 @@
 import { json } from "@sveltejs/kit";
 import fetch from "node-fetch";
-import { GoogleAuth } from "google-auth-library";
 import {
-  GOOGLE_APPLICATION_CREDENTIALS,
+  VERTEX_API_KEY,
   GCP_PROJECT_ID
 } from "$env/static/private";
 
 const REGION = "us-central1";
 const PROJECT_ID = String(GCP_PROJECT_ID).trim();
-
-/* ---------------- VERTEX AUTH ---------------- */
-
-const auth = new GoogleAuth({
-  keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-});
 
 /* ---------------- POST: HIGHLIGHTS ---------------- */
 
@@ -29,11 +21,8 @@ export async function POST({ request }) {
       );
     }
 
-    const client = await auth.getClient();
-    const accessToken = await client.getAccessToken();
-
-    // ✅ Stable Gemini model
-    const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/gemini-2.0-flash-001:generateContent`;
+    // ✅ SAME model, SAME endpoint
+    const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/gemini-2.0-flash-lite:generateContent`;
 
     const meetingContext = meetingType
       ? `Meeting type: ${meetingType.replace("_", " ")}`
@@ -65,8 +54,8 @@ ${transcript}
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken.token}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": VERTEX_API_KEY
       },
       body: JSON.stringify({
         contents: [

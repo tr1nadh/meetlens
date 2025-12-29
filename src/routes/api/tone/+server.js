@@ -1,20 +1,15 @@
 import { json } from "@sveltejs/kit";
 import fetch from "node-fetch";
-import { GoogleAuth } from "google-auth-library";
 import {
-  GOOGLE_APPLICATION_CREDENTIALS,
+  VERTEX_API_KEY,
   GCP_PROJECT_ID
 } from "$env/static/private";
 
 const REGION = "us-central1";
 const PROJECT_ID = String(GCP_PROJECT_ID).trim();
-const MODEL_ID = "gemini-2.0-flash-001"; // Consistent with your working summary code
+const MODEL_ID = "gemini-2.0-flash-lite"; // unchanged
 
-/* ---------------- VERTEX AUTH ---------------- */
-const auth = new GoogleAuth({
-  keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-});
+/* ---------------- POST: TONE ANALYSIS ---------------- */
 
 export async function POST({ request }) {
   try {
@@ -24,12 +19,7 @@ export async function POST({ request }) {
       return json({ error: "Transcript is too short" }, { status: 400 });
     }
 
-    // 1. Get Auth Token (Bearer Token)
-    const client = await auth.getClient();
-    const tokenResponse = await client.getAccessToken();
-    const accessToken = tokenResponse.token;
-
-    // 2. Vertex AI Endpoint
+    // ✅ SAME endpoint, SAME model
     const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${MODEL_ID}:generateContent`;
 
     const prompt = `
@@ -40,21 +30,27 @@ export async function POST({ request }) {
         "sentiment": "positive | neutral | negative | mixed",
         "emotions": ["string"],
         "confidenceLevel": "Low | Medium | High",
-        "riskSignals": ["string"],
+        "riskSignals": ["string"]  // indicators of hesitation, uncertainty, objections, delays, dissatisfaction, legal, financial, or delivery concerns; include inferred risks if clearly implied by tone or wording
         "summary": "string"
       }
       Transcript:
       """
       ${transcript}
       """
+
+      Rules for riskSignals:
+- Include explicit risks mentioned in the conversation
+- ALSO include implicit risks if the speaker shows hesitation, concern, pushback, uncertainty, or resistance
+- Do NOT invent risks that are not reasonably implied
+- If no risks are present, return an empty array
+
     `;
 
-    // 3. The API Request
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": VERTEX_API_KEY
       },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -69,7 +65,10 @@ export async function POST({ request }) {
     if (!res.ok) {
       const errData = await res.json();
       console.error("Vertex API Error:", JSON.stringify(errData, null, 2));
-      return json({ error: "Gemini failed to analyze tone" }, { status: res.status });
+      return json(
+        { error: "Gemini failed to analyze tone" },
+        { status: res.status }
+      );
     }
 
     const data = await res.json();
@@ -79,10 +78,10 @@ export async function POST({ request }) {
       throw new Error("Empty response from AI");
     }
 
-    // 4. Parse and Return
-    // Vertex with responseMimeType returns a clean string, but we parse to send as JSON object
+    // ✅ SAME parsing logic
     const toneResult = JSON.parse(rawText);
     console.log("[TONE RESULT]", toneResult);
+
     return json(toneResult);
 
   } catch (err) {

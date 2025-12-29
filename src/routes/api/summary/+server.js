@@ -1,24 +1,12 @@
 import { json } from "@sveltejs/kit";
 import fetch from "node-fetch";
-import { GoogleAuth } from "google-auth-library";
 import {
-  GOOGLE_APPLICATION_CREDENTIALS,
+  VERTEX_API_KEY,
   GCP_PROJECT_ID
 } from "$env/static/private";
 
 const REGION = "us-central1";
-const PROJECT_ID = String(GCP_PROJECT_ID).trim();
-
-// UPDATED: Using Gemini 2.0 Flash (the 2025 standard)
-// If this still 404s, we swap to 'gemini-1.5-flash-002'
-const MODEL_ID = "gemini-2.0-flash-001"; 
-
-/* ---------------- VERTEX AUTH ---------------- */
-
-const auth = new GoogleAuth({
-  keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-});
+const MODEL_ID = "gemini-2.0-flash-lite";
 
 /* ---------------- POST: SUMMARY ---------------- */
 
@@ -30,18 +18,10 @@ export async function POST({ request }) {
       return json({ error: "Transcript too short" }, { status: 400 });
     }
 
-    // 1. Get Auth Token
-    const client = await auth.getClient();
-    const tokenResponse = await client.getAccessToken();
-    const accessToken = tokenResponse.token;
-
-    // 2. Updated Endpoint Pattern
-    // Note: We use the 'v1' endpoint which is stable for 2025
-    const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${MODEL_ID}:generateContent`;
+    const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT_ID}/locations/${REGION}/publishers/google/models/${MODEL_ID}:generateContent`;
 
     const prompt = `
-    
-    You are an AI that generates meeting summaries for a professional ${meetingType} analysis product.
+You are an AI that generates meeting summaries for a professional ${meetingType || "meeting"} analysis product.
 
 STRICT RULES (must be followed):
 - Output PLAIN TEXT only
@@ -67,12 +47,11 @@ ${transcript}
 Before responding, double-check that the output follows all rules above. If not, rewrite it as plain text.
 `;
 
-    // 3. The API Request
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": VERTEX_API_KEY
       },
       body: JSON.stringify({
         contents: [
@@ -82,30 +61,17 @@ Before responding, double-check that the output follows all rules above. If not,
           }
         ],
         generationConfig: {
-          temperature: 0.1, // Lower temperature for more accurate summaries
+          temperature: 0.1,
           maxOutputTokens: 1024
         }
       })
     });
 
-    // 4. Enhanced Error Diagnostic
     if (!res.ok) {
-      const errData = await res.json();
-      console.error("--- VERTEX DEBUG INFO ---");
-      console.error("Project ID Used:", PROJECT_ID);
-      console.error("Endpoint:", endpoint);
-      console.error("Full Error:", JSON.stringify(errData, null, 2));
-      
-      // If we get a 404, suggest checking Model Garden
-      if (res.status === 404) {
-        return json({ 
-          error: "Model Not Found", 
-          message: "The model ID might not be enabled for your project or region.",
-          suggestion: "Visit Vertex AI Model Garden in GCP Console to 'Enable' Gemini 2.0."
-        }, { status: 404 });
-      }
-
-      throw new Error(`Vertex AI Error: ${res.status}`);
+      const err = await res.json();
+      console.error("--- VERTEX API ERROR ---");
+      console.error(JSON.stringify(err, null, 2));
+      throw new Error(err.error?.message || "Vertex AI request failed");
     }
 
     const data = await res.json();
