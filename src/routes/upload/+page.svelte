@@ -417,13 +417,6 @@ $: currentWordIndex = duration > 0
               on:fileCleared={handleClear}
               on:error={(e) => error = e.detail}
             />
-            <!-- <div class="file-input-container">
-                <input type="file" accept="audio/*" id="audio-input" class="d-none" on:change={handleFileChange} />
-                <label for="audio-input" class="btn btn-indigo-glow w-100 py-2 d-flex align-items-center justify-content-center">
-                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>
-                    {file ? file.name.substring(0, 15) + '...' : "Choose Audio"}
-                </label>
-            </div> -->
           </div>
 
 
