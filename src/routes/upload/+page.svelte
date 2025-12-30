@@ -16,6 +16,7 @@
   import ShareReport from './ShareReport.svelte';
   import ActionItemsAnalysis from './ActionItemsAnalysis.svelte';
   import DecisionAnalysis from './DecisionAnalysis.svelte';
+  import SummaryAnalysis from './SummaryAnalysis.svelte';
 
 
   /* Script logic remains untouched as requested */
@@ -557,25 +558,13 @@ $: currentWordIndex = duration > 0
           {analyzeTone}
         />
         
-        <div class="card glass-card mb-3">
-          <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-brain me-2 text-purple"></i> Summary</h5>
-              {#if summary}<button class="btn btn-sm btn-outline-glass" on:click={copySummary}><i class="fa-solid {summaryCopied ? 'fa-check' : 'fa-copy'}"></i></button>{/if}
-            </div>
-            {#if summaryLoading}
-              <div class="text-light-muted small mb-3 animate-pulse">Generating summary...</div>
-            {:else if summary}
-              <p class="small text-light-muted leading-relaxed">{summary}</p>
-              <button class="btn btn-outline-purple w-100 mt-2" on:click={generateSummary}>
-                <i class="fa-solid fa-rotate-right me-1"></i> Re-generate Summary
-              </button>
-            {:else}
-              <button class="btn btn-purple-glow w-100" disabled={!transcript.trim()} on:click={generateSummary}>Generate Summary</button>
-            {/if}
-          </div>
-        </div>
-        
+        <SummaryAnalysis
+          {transcript}
+          {summary}
+          {summaryLoading}
+          {generateSummary}
+        />
+
         <DecisionAnalysis
           {transcript}
           {keyDecisions}
