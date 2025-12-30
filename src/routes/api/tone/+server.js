@@ -7,7 +7,7 @@ import {
 
 const REGION = "us-central1";
 const PROJECT_ID = String(GCP_PROJECT_ID).trim();
-const MODEL_ID = "gemini-2.0-flash-lite"; // unchanged
+const MODEL_ID = "gemini-2.0-flash-lite";
 
 /* ---------------- POST: TONE ANALYSIS ---------------- */
 
@@ -19,32 +19,41 @@ export async function POST({ request }) {
       return json({ error: "Transcript is too short" }, { status: 400 });
     }
 
-    // ✅ SAME endpoint, SAME model
     const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${MODEL_ID}:generateContent`;
 
     const prompt = `
-      You are a conversation analyst. Analyze the following ${meetingType} transcript.
-      Return ONLY a valid JSON object with the following structure:
-      {
-        "tone": "string",
-        "sentiment": "positive | neutral | negative | mixed",
-        "emotions": ["string"],
-        "confidenceLevel": "Low | Medium | High",
-        "riskSignals": ["string"]  // indicators of hesitation, uncertainty, objections, delays, dissatisfaction, legal, financial, or delivery concerns; include inferred risks if clearly implied by tone or wording
-        "summary": "string"
-      }
-      Transcript:
-      """
-      ${transcript}
-      """
+You are a high-precision linguistic expert and conversation analyst. Analyze the provided ${meetingType} transcript for tone, sentiment, and underlying risk.
 
-      Rules for riskSignals:
-- Include explicit risks mentioned in the conversation
-- ALSO include implicit risks if the speaker shows hesitation, concern, pushback, uncertainty, or resistance
-- Do NOT invent risks that are not reasonably implied
-- If no risks are present, return an empty array
+### Objectives:
+1. **Tone & Sentiment:** Identify the overall atmosphere (e.g., Professional, Assertive, Tense) and sentiment polarity.
+2. **Emotional Mapping:** Detect specific emotions present (e.g., Gratitude, Frustration, Urgency).
+3. **Risk Detection:** Scan for "Risk Signals." These include:
+   - **Explicit Risks:** Mention of budget overruns, missed deadlines, or legal hurdles.
+   - **Implicit Risks:** Hesitation (e.g., "I guess we could..."), uncertainty ("We might be able to"), objections, or underlying dissatisfaction.
+4. **Summary:** Provide a concise 2-3 sentence overview of the conversation's health.
 
-    `;
+### JSON Schema Requirement:
+Return ONLY a valid JSON object with this exact structure:
+{
+  "tone": "string",
+  "sentiment": "positive | neutral | negative | mixed",
+  "emotions": ["string"],
+  "confidenceLevel": "Low | Medium | High",
+  "riskSignals": ["string"],
+  "summary": "string"
+}
+
+### Strict Rules:
+- **Accuracy:** Every risk signal must be traceable to specific wording in the transcript.
+- **Consistency:** Maintain a professional, objective analytical tone in the descriptions.
+- **Implicit Intelligence:** Pay close attention to word choices that signal low confidence or unstated disagreement.
+- **Output:** No preamble or markdown backticks. Just the JSON object.
+
+Transcript:
+"""
+${transcript}
+"""
+    `.trim();
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -55,9 +64,12 @@ export async function POST({ request }) {
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.2,
-          // Explicitly requesting JSON response
-          responseMimeType: "application/json"
+          // Deterministic settings for consistent analysis
+          temperature: 0, 
+          topP: 1,
+          topK: 1,
+          maxOutputTokens: 1000,
+          response_mime_type: "application/json" 
         }
       })
     });
@@ -78,10 +90,7 @@ export async function POST({ request }) {
       throw new Error("Empty response from AI");
     }
 
-    // ✅ SAME parsing logic
     const toneResult = JSON.parse(rawText);
-    console.log("[TONE RESULT]", toneResult);
-
     return json(toneResult);
 
   } catch (err) {
