@@ -480,7 +480,7 @@ $: currentWordIndex = duration > 0
       </div>
     </div>
 
-    <div class="row g-4">
+    <div id="analysis-dashboard" class="row g-4">
       <div class="col-lg-7">
         <div class="card glass-card h-100">
           <div class="card-body p-4">
