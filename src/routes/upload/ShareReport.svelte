@@ -1,10 +1,19 @@
 <script>
   import { onMount } from 'svelte';
 
+  export let summary = ""; 
+  export let actionItems = []; 
+  
   let html2canvas;
   let jsPDF;
   let isExporting = false;
-  let exportType = ''; // 'pdf' or 'png'
+  let exportType = ''; 
+
+  // Email & Progress state
+  let emailRecipient = "";
+  let emailStatus = ""; 
+  let progressPercentage = 0;
+  let progressText = "";
 
   onMount(async () => {
     const h2cModule = await import('html2canvas');
@@ -13,71 +22,113 @@
     jsPDF = jspdfModule.default;
   });
 
-  // Reusable helper to capture the dashboard without the modal
   async function captureDashboard() {
+    progressPercentage = 10;
+    progressText = "Capturing Dashboard...";
+    
     const element = document.getElementById('analysis-dashboard');
     const modalElement = document.getElementById('shareModal');
-    
     if (!element || !html2canvas) return null;
 
-    // Hide modal and backdrop from capture
     modalElement.setAttribute('data-html2canvas-ignore', 'true');
     const backdrops = document.querySelectorAll('.modal-backdrop');
     backdrops.forEach(b => b.setAttribute('data-html2canvas-ignore', 'true'));
 
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 1.5, // Slightly reduced scale for faster processing
       useCORS: true,
       backgroundColor: '#0e111d', 
       logging: false,
     });
 
     modalElement.removeAttribute('data-html2canvas-ignore');
+    progressPercentage = 40;
     return canvas;
   }
 
-  async function downloadPDF() {
+  async function sendEmail() {
+    if (!emailRecipient || isExporting) return;
     isExporting = true;
-    exportType = 'pdf';
+    exportType = 'email';
+    emailStatus = "sending";
+    progressPercentage = 0;
+
     try {
       const canvas = await captureDashboard();
-      if (!canvas || !jsPDF) return;
+      if (!canvas || !jsPDF) throw new Error("Libraries not loaded");
 
-      const imgData = canvas.toDataURL('image/png');
+      progressText = "Generating PDF Report...";
+      progressPercentage = 60;
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
         format: [canvas.width, canvas.height]
       });
+      pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height);
 
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(`Meeting_Analysis_${new Date().toISOString().slice(0, 10)}.pdf`);
+      const pdfArrayBuffer = pdf.output('arraybuffer');
+      const pdfBase64 = btoa(
+        new Uint8Array(pdfArrayBuffer)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      progressText = "Uploading to Mail Server...";
+      progressPercentage = 85;
+
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient: emailRecipient,
+          summary: summary,
+          actionItems: actionItems,
+          pdfBase64: pdfBase64
+        })
+      });
+
+      if (response.ok) {
+        progressPercentage = 100;
+        progressText = "Sent!";
+        emailStatus = "success";
+        emailRecipient = "";
+        setTimeout(() => {
+            emailStatus = "";
+            progressPercentage = 0;
+        }, 5000);
+      } else {
+        throw new Error("Failed to send");
+      }
     } catch (err) {
-      console.error('PDF Export Error:', err);
+      console.error(err);
+      emailStatus = "error";
     } finally {
       isExporting = false;
       exportType = '';
     }
   }
 
-  async function downloadPNG() {
-    isExporting = true;
-    exportType = 'png';
+  async function downloadPDF() {
+    isExporting = true; exportType = 'pdf';
     try {
       const canvas = await captureDashboard();
       if (!canvas) return;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width, canvas.height] });
+      pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`Meeting_Analysis_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally { isExporting = false; exportType = ''; }
+  }
 
-      // Create a virtual link to trigger download
+  async function downloadPNG() {
+    isExporting = true; exportType = 'png';
+    try {
+      const canvas = await captureDashboard();
+      if (!canvas) return;
       const link = document.createElement('a');
       link.download = `Meeting_Analysis_${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-    } catch (err) {
-      console.error('PNG Export Error:', err);
-    } finally {
-      isExporting = false;
-      exportType = '';
-    }
+    } finally { isExporting = false; exportType = ''; }
   }
 </script>
 
@@ -99,26 +150,11 @@
         <div class="mb-4">
           <label class="text-light-muted small fw-bold mb-3 d-block">EXPORT OPTIONS</label>
           <div class="d-grid gap-2">
-            <button 
-              class="btn btn-outline-glass d-flex justify-content-between align-items-center py-2 px-3"
-              on:click={downloadPDF}
-              disabled={isExporting}
-            >
-              <span>
-                <i class="fa-solid {exportType === 'pdf' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} me-2 text-danger"></i> 
-                {exportType === 'pdf' ? 'Generating PDF...' : 'Download as PDF'}
-              </span>
+            <button class="btn btn-outline-glass d-flex justify-content-between align-items-center py-2 px-3" on:click={downloadPDF} disabled={isExporting}>
+              <span><i class="fa-solid {exportType === 'pdf' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} me-2 text-danger"></i> {exportType === 'pdf' ? 'Generating PDF...' : 'Download as PDF'}</span>
             </button>
-            
-            <button 
-              class="btn btn-outline-glass d-flex justify-content-between align-items-center py-2 px-3"
-              on:click={downloadPNG}
-              disabled={isExporting}
-            >
-              <span>
-                <i class="fa-solid {exportType === 'png' ? 'fa-spinner fa-spin' : 'fa-image'} me-2 text-purple"></i> 
-                {exportType === 'png' ? 'Generating Image...' : 'Download as PNG'}
-              </span>
+            <button class="btn btn-outline-glass d-flex justify-content-between align-items-center py-2 px-3" on:click={downloadPNG} disabled={isExporting}>
+              <span><i class="fa-solid {exportType === 'png' ? 'fa-spinner fa-spin' : 'fa-image'} me-2 text-purple"></i> {exportType === 'png' ? 'Generating Image...' : 'Download as PNG'}</span>
             </button>
           </div>
         </div>
@@ -127,20 +163,43 @@
 
         <div class="mb-2">
           <label class="text-light-muted small fw-bold mb-2 d-block">SEND VIA EMAIL</label>
-          <p class="text-light-muted x-small mb-3">Analysis report will be sent as an interactive HTML link.</p>
+          
+          {#if emailStatus === 'sending'}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between x-small mb-1">
+                    <span class="text-indigo fw-bold">{progressText}</span>
+                    <span class="text-light-muted">{progressPercentage}%</span>
+                </div>
+                <div class="progress bg-dark-soft" style="height: 6px;">
+                    <div class="progress-bar bg-indigo-glow progress-bar-striped progress-bar-animated" 
+                         role="progressbar" 
+                         style="width: {progressPercentage}%"></div>
+                </div>
+            </div>
+          {:else}
+            <p class="text-light-muted x-small mb-3">Report includes key action items in the body and a visual PDF.</p>
+          {/if}
           
           <div class="input-group">
             <input 
-              type="email" 
-              class="form-control form-control-custom" 
-              placeholder="colleague@company.com" 
+                type="email" 
+                bind:value={emailRecipient} 
+                class="form-control form-control-custom" 
+                placeholder="colleague@company.com" 
+                disabled={isExporting} 
             />
-            <button class="btn btn-indigo-glow px-3 disabled-feature" type="button">
-              <i class="fa-solid fa-paper-plane me-2"></i>Send
+            <button class="btn btn-indigo-glow px-3" type="button" on:click={sendEmail} disabled={isExporting || !emailRecipient}>
+              {#if emailStatus === 'sending'} 
+                <i class="fa-solid fa-spinner fa-spin"></i> 
+              {:else} 
+                <i class="fa-solid fa-paper-plane me-2"></i>Send 
+              {/if}
             </button>
           </div>
           <div class="mt-2 text-end">
-              <span class="text-purple x-small fw-bold opacity-75 uppercase-tracking">EMAIL SERVICE COMING SOON</span>
+              {#if emailStatus === 'success'} <span class="text-success x-small fw-bold uppercase-tracking">SENT SUCCESSFULLY!</span>
+              {:else if emailStatus === 'error'} <span class="text-danger x-small fw-bold uppercase-tracking">SENDING FAILED</span>
+              {:else if emailStatus !== 'sending'} <span class="text-purple x-small fw-bold opacity-75 uppercase-tracking">READY TO SEND</span> {/if}
           </div>
         </div>
       </div>
@@ -153,47 +212,30 @@
 </div>
 
 <style>
-  .glass-card {
-    background: #0e111d !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 20px;
-  }
+  .glass-card { background: #0e111d !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 20px; }
   .border-glass { border-color: rgba(255, 255, 255, 0.1) !important; }
   .x-small { font-size: 0.7rem; }
   .uppercase-tracking { text-transform: uppercase; letter-spacing: 1px; }
-  .disabled-feature { cursor: not-allowed !important; opacity: 0.6; filter: grayscale(0.5); }
   
-  .form-control-custom {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    border-top-left-radius: 12px !important;
-    border-bottom-left-radius: 12px !important;
-    padding: 10px 15px;
+  /* Fixed Input Visibility */
+  .form-control-custom { 
+    background: rgba(255, 255, 255, 0.08) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; 
+    color: #ffffff !important; 
+    border-top-left-radius: 12px !important; 
+    border-bottom-left-radius: 12px !important; 
+    padding: 10px 15px; 
+    font-size: 0.9rem;
   }
-  .form-control-custom:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  }
-  .btn-indigo-glow {
-    background: #6366f1;
-    color: white;
-    border: none;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-    font-weight: 700;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-  }
-  .btn-outline-glass {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-  }
-  .btn-outline-glass:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
-    border-color: rgba(255, 255, 255, 0.3);
-  }
+  .form-control-custom::placeholder { color: rgba(255, 255, 255, 0.4); }
+  .form-control-custom:focus { border-color: #6366f1 !important; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+
+  /* Progress Bar Styling */
+  .bg-dark-soft { background: rgba(255, 255, 255, 0.05); }
+  .bg-indigo-glow { background: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
+  .text-indigo { color: #818cf8; }
+
+  .btn-indigo-glow { background: #6366f1; color: white; border: none; border-top-right-radius: 12px; border-bottom-right-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+  .btn-outline-glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 12px; transition: all 0.2s ease; }
+  .btn-outline-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: white; border-color: rgba(255, 255, 255, 0.3); }
 </style>

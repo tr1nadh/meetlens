@@ -547,7 +547,7 @@ $: currentWordIndex = duration > 0
                 </button>
             </div>
             <div class="col-6">
-              <ShareReport />
+              <ShareReport {summary} {actionItems} />
             </div>
         </div>
 
