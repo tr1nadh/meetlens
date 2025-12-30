@@ -1,18 +1,48 @@
 <script>
     export let transcript = "";
-    // Defaulting to an empty array prevents "each" errors if the prop is passed as null
     export let keyDecisions = []; 
     export let keyDecisionsLoading = false;
     export let generateKeyDecisions = () => {};
+
+    let copied = false;
+
+    function copyAllDecisions() {
+        if (!keyDecisions || keyDecisions.length === 0) return;
+
+        const text = keyDecisions.map((item, i) => {
+            return `${i + 1}. DECISION: ${item.decision}\n   BY: ${item.decisionMaker ?? 'Consensus'}\n   CONFIDENCE: ${item.confidenceLevel ?? 'High'}\n`;
+        }).join('\n');
+
+        const header = `--- KEY DECISIONS SUMMARY ---\n\n`;
+        navigator.clipboard.writeText(header + text);
+        
+        copied = true;
+        setTimeout(() => copied = false, 2000);
+    }
 </script>
 
 <div class="enterprise-theme-context">
   <div class="card glass-card mb-3">
     <div class="card-body p-4">
-      <h5 class="text-white fw-bold mb-4">
-        <i class="fa-solid fa-gavel me-2 text-indigo"></i> 
-        Key Decisions
-      </h5>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="text-white fw-bold m-0">
+          <i class="fa-solid fa-gavel me-2 text-indigo"></i> 
+          Key Decisions
+        </h5>
+        
+        {#if keyDecisions && keyDecisions.length > 0 && !keyDecisionsLoading}
+          <button 
+            class="btn btn-copy-all {copied ? 'active' : ''}" 
+            on:click={copyAllDecisions}
+          >
+            {#if copied}
+              <i class="fa-solid fa-check me-1"></i> Copied!
+            {:else}
+              <i class="fa-solid fa-copy me-1"></i> Copy All
+            {/if}
+          </button>
+        {/if}
+      </div>
 
       {#if keyDecisionsLoading}
         <div class="text-indigo mb-2 small animate-pulse d-flex align-items-center">
@@ -60,7 +90,7 @@
                           {#each (item.evidence ?? []) as snippet}
                             <li>{snippet}</li>
                           {:else}
-                             <li class="opacity-50">No specific evidence snippets identified.</li>
+                             <li class="opacity-50">No specific evidence segments found.</li>
                           {/each}
                         </ul>
                       </div>
@@ -96,16 +126,42 @@
     --indigo-primary: #6366f1;
     --indigo-light: #a5b4fc;
     --indigo-glow: rgba(99, 102, 241, 0.4);
-    --bg-dark-surface: #0e111d;
+    --bg-dark-surface: #05070a;
+    --bg-card: #0e111d;
     --glass-border: rgba(255, 255, 255, 0.1);
     --text-muted: #94a3b8;
   }
 
   .glass-card {
-    background: var(--bg-dark-surface) !important;
+    background: var(--bg-card) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: 20px;
     overflow: visible !important;
+  }
+
+  /* Copy All Button Styles */
+  .btn-copy-all {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: var(--indigo-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-copy-all:hover {
+    background: var(--indigo-primary);
+    color: white;
+    box-shadow: 0 0 10px var(--indigo-glow);
+  }
+
+  .btn-copy-all.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
   }
 
   .decision-item {
@@ -113,7 +169,6 @@
     border: 1px solid rgba(99, 102, 241, 0.15);
     border-left: 3px solid var(--indigo-primary);
     border-radius: 12px;
-    transition: transform 0.2s ease;
   }
 
   .decision-card-inner { padding: 16px; position: relative; }
@@ -158,7 +213,7 @@
   .evidence-popover {
     visibility: hidden; opacity: 0;
     position: absolute; bottom: 130%; right: 0;
-    width: 280px; background: #05070a;
+    width: 280px; background: var(--bg-dark-surface);
     border: 1px solid var(--indigo-primary);
     border-radius: 12px; z-index: 100;
     transition: all 0.2s ease;
