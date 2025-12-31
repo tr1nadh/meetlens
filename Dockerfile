@@ -7,6 +7,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# ... after COPY . . ...
+
+# Provide dummy variables so the static build doesn't crash
+ENV GCP_PROJECT_ID=placeholder
+ENV VERTEX_API_KEY=placeholder
+ENV LEMONFOX_API_KEY=placeholder
+
+
 # Copy source and build
 COPY . .
 RUN npm run build
