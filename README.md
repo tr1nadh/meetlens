@@ -168,8 +168,8 @@ MeetLens is deployed on **Vercel** for:
 * Serverless scalability
 
 Live Demo:
-👉 [https://meetlens.vercel.app](https://meetlens.vercel.app)
-
+👉 [https://meetlensai.vercel.app](https://meetlensai.vercel.app)
+- Temporary url - Deployment issues
 ---
 
 ## 📈 Future Roadmap
