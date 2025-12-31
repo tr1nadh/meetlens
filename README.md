@@ -1,7 +1,3 @@
-Ah, I understand! When I wrap it in a "code block" (the gray box), some editors double the characters or formatting when you paste.
-
-Here is the **normal text** version. You can copy everything from the title `# 🎧 MeetLens` down to the end.
-
 # 🎧 MeetLens — AI Meeting & Call Analyzer
 
 > **Team: AIB au** > *Turning raw meeting audio into structured, actionable intelligence in seconds.*
