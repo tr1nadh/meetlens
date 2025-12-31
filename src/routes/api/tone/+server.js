@@ -1,12 +1,11 @@
 import { json } from "@sveltejs/kit";
 import fetch from "node-fetch";
 import {
-  VERTEX_API_KEY,
-  GCP_PROJECT_ID
-} from "$env/static/private";
+  env
+} from "$env/dynamic/private";
 
 const REGION = "us-central1";
-const PROJECT_ID = String(GCP_PROJECT_ID).trim();
+const PROJECT_ID = String(env.GCP_PROJECT_ID).trim();
 const MODEL_ID = "gemini-2.0-flash-lite";
 
 /* ---------------- POST: TONE ANALYSIS ---------------- */
@@ -71,7 +70,7 @@ ${normalizedTranscript}
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": VERTEX_API_KEY
+        "X-Goog-Api-Key": env.VERTEX_API_KEY
       },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],

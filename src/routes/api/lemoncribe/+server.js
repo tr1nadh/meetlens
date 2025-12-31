@@ -8,20 +8,18 @@ import fetch from "node-fetch";
 import FormData from "form-data";
 import { GoogleAuth } from "google-auth-library";
 import {
-  GOOGLE_APPLICATION_CREDENTIALS,
-  GCP_PROJECT_ID,
-  LEMONFOX_API_KEY
-} from "$env/static/private";
+  env
+} from "$env/dynamic/private";
 
 if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
 
 const REGION = "us-central1";
-const PROJECT_ID = String(GCP_PROJECT_ID).trim();
+const PROJECT_ID = String(env.GCP_PROJECT_ID).trim();
 
 /* ---------------- GEMINI AUTH ---------------- */
 
 const auth = new GoogleAuth({
-  keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
+  keyFilename: env.GOOGLE_APPLICATION_CREDENTIALS,
   scopes: ["https://www.googleapis.com/auth/cloud-platform"]
 });
 
@@ -139,7 +137,7 @@ export async function POST({ request }) {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LEMONFOX_API_KEY}`,
+          Authorization: `Bearer ${env.LEMONFOX_API_KEY}`,
           ...lfForm.getHeaders()
         },
         body: lfForm

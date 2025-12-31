@@ -1,9 +1,8 @@
 import { json } from "@sveltejs/kit";
 import fetch from "node-fetch";
 import {
-  VERTEX_API_KEY,
-  GCP_PROJECT_ID
-} from "$env/static/private";
+  env
+} from "$env/dynamic/private";
 
 const REGION = "us-central1";
 const MODEL_ID = "gemini-2.0-flash-lite";
@@ -25,7 +24,7 @@ export async function POST({ request }) {
       .replace(/([A-Z][a-z]+ \d?:|[A-Z]{2,}:)/g, '\n$1') 
       .trim();
 
-    const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT_ID}/locations/${REGION}/publishers/google/models/${MODEL_ID}:generateContent`;
+    const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${env.GCP_PROJECT_ID}/locations/${REGION}/publishers/google/models/${MODEL_ID}:generateContent`;
 
     const systemInstruction = `You are a robotic, deterministic scribe. 
       TASK: Convert transcripts into exactly one plain-text paragraph.
@@ -46,7 +45,7 @@ export async function POST({ request }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": VERTEX_API_KEY
+        "X-Goog-Api-Key": env.VERTEX_API_KEY
       },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemInstruction }] },
