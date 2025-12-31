@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { json } from '@sveltejs/kit';
-import { GMAIL_ADDRESS, GMAIL_APP_PASSWORD } from '$env/static/private';
+import { GMAIL_ADDRESS, GMAIL_APP_PASSWORD } from '$env/dynamic/private';
 
 export async function POST({ request }) {
     try {
