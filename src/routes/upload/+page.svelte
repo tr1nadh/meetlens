@@ -285,7 +285,7 @@
           MeetLens
         </h4> -->
         <p class="text-light-muted fs-6 fw-semibold mb-4">
-          Upload audio <span class="text-primary">(WAV, MP3, M4A | MAX 30min)</span>,
+          Upload audio <span class="text-primary">(WAV, MP3, M4A | MAX 30min | 100 MB LIMIT)</span>,
            choose its type, and generate a clean transcript with AI insights.
         </p>
 
