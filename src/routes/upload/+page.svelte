@@ -1,22 +1,22 @@
 <script>
 
-  import { 
-    meetingTypeStore, 
-    transcriptStore, 
-    summaryStore, 
-    actionItemsStore, 
-    highlightsStore, 
-    keyDecisionsStore, 
-    toneResultStore, 
-    speakerMapStore 
+  import {
+    actionItemsStore,
+    highlightsStore,
+    keyDecisionsStore,
+    meetingTypeStore,
+    speakerMapStore,
+    summaryStore,
+    toneResultStore,
+    transcriptStore
   } from '$lib/store.js';
-  import { onMount } from 'svelte';
-  import AudioUploader from './AudioUploader.svelte';
-  import ToneAnalysis from './ToneAnalysis.svelte';
-  import ShareReport from './ShareReport.svelte';
   import ActionItemsAnalysis from './ActionItemsAnalysis.svelte';
+  import AudioUploader from './AudioUploader.svelte';
   import DecisionAnalysis from './DecisionAnalysis.svelte';
+  import HighlightsAnalysis from './HighlightsAnalysis.svelte';
+  import ShareReport from './ShareReport.svelte';
   import SummaryAnalysis from './SummaryAnalysis.svelte';
+  import ToneAnalysis from './ToneAnalysis.svelte';
   import TranscriptBlock from './TranscriptBlock.svelte';
 
 
@@ -530,6 +530,13 @@ $: currentWordIndex = duration > 0
           {generateKeyDecisions}
         />
 
+        <HighlightsAnalysis
+          {transcript}
+          {highlights}
+          {highlightsLoading}
+          {generateHighlights}
+        />
+
         <ActionItemsAnalysis
           {transcript}
           {actionItems}
@@ -564,7 +571,6 @@ $: currentWordIndex = duration > 0
   .text-indigo { color: var(--indigo-primary); }
   .text-purple { color: var(--purple-primary); }
   .text-emerald { color: var(--emerald-primary); }
-  .text-warning { color: var(--warning-primary); }
 
   /* CARDS */
   .glass-card {
@@ -594,82 +600,6 @@ $: currentWordIndex = duration > 0
     padding: 10px;
   }
 
-  /* TRANSCRIPT AREA */
-  .transcript-area { resize: none; line-height: 1.6; }
-
-  /* RESULT BOXES */
-  .result-box {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-glass);
-    border-radius: 12px;
-    padding: 15px;
-    color: var(--text-muted);
-    white-space: pre-wrap;
-  }
-
-.speaker-chip {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(99, 102, 241, 0.3); /* Subtle Indigo Border */
-  color: #e2e8f0;
-  border-radius: 10px;
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-}
-
-.speaker-chip i {
-  color: #6366f1; /* Indigo icon */
-  font-size: 0.75rem;
-}
-
-.speaker-chip:hover {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: #6366f1;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-}
-
-/* Custom Scrollbar Styling for the Textarea */
-.transcript-area {
-  resize: none;
-  line-height: 1.8;
-  font-family: 'Inter', sans-serif; /* Cleaner font for long reading */
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--indigo-primary) transparent; /* Firefox */
-}
-
-/* Webkit browsers (Chrome, Edge, Safari) */
-.transcript-area::-webkit-scrollbar {
-  width: 6px; /* Very thin for a sleek look */
-}
-
-.transcript-area::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02); /* Nearly invisible track */
-  border-radius: 10px;
-}
-
-.transcript-area::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, var(--indigo-primary), var(--purple-primary));
-  border-radius: 10px;
-  border: 2px solid transparent; /* Creates padding effect */
-}
-
-.transcript-area::-webkit-scrollbar-thumb:hover {
-  background: var(--indigo-primary);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.5); /* Glowing effect on hover */
-}
-
-/* Optional: Smooth fade-in for the text */
-.transcript-area {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.speaker-chip:active {
-  transform: translateY(0);
-}
 
 /* Sticky Footer Container */
 .audio-sticky-footer {
@@ -725,100 +655,6 @@ $: currentWordIndex = duration > 0
   to { opacity: 1; transform: translateY(0); }
 }
 
-.transcript-area {
-  height: 600px;
-  overflow-y: auto;
-  transition: all 0.3s ease;
-}
-
-/* Karaoke Highlight Styles */
-.highlight-mode {
-  background: rgba(10, 12, 20, 0.95) !important;
-  line-height: 2;
-  font-size: 1.1rem;
-  padding: 20px;
-  white-space: pre-wrap;
-}
-
-.word-idle {
-  color: rgba(255, 255, 255, 0.25);
-  transition: none; /* Removed transition for instant response */
-}
-
-.word-active {
-  color: #fff !important;
-  background: var(--indigo-primary);
-  border-radius: 4px;
-  font-weight: bold;
-  padding: 0 4px;
-  /* Add a glow that expands slightly to catch the eye faster */
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
-  transition: none; 
-}
-
-/* Smooth scrolling for the highlight container */
-#highlight-container {
-  scroll-behavior: smooth;
-}
-
-/* Add this to your CSS */
-.speaker-chips-container {
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.hide-speakers {
-  opacity: 0;
-  visibility: hidden;
-  height: 0;
-  margin-bottom: 0 !important;
-  overflow: hidden;
-}
-
-/* Improvement for the Focus Badge */
-.focus-badge {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  background: rgba(99, 102, 241, 0.2);
-  color: var(--indigo-primary);
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--indigo-primary);
-  text-transform: uppercase;
-  z-index: 5;
-}
-
-/* Targeted styles for your inputs */
-.form-control-custom {
-  background: rgba(255, 255, 255, 0.05); /* Subtle dark background */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ffffff !important; /* Forces typed text to be white */
-  border-radius: 12px;
-  padding: 12px;
-}
-
-/* Make placeholder text clearly visible (Light Gray) */
-.form-control-custom::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
-  opacity: 1; /* Firefox fix */
-}
-
-/* Ensure visibility when clicking/focusing */
-.form-control-custom:focus {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border-color: #6366f1; /* Your indigo theme color */
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  outline: none;
-}
-
-
-  /* TONE SPECIFIC */
-  .tone-grid { display: flex; gap: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 15px; }
-  .badge-indigo { background: var(--indigo-primary); color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; }
-  .italic { font-style: italic; }
 
   /* BUTTONS */
   .btn-indigo-glow { background: var(--indigo-primary); color: white; border: none; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: 0.3s; }
@@ -827,23 +663,8 @@ $: currentWordIndex = duration > 0
   .btn-purple-glow { background: var(--purple-primary); color: white; border: none; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2); transition: 0.3s; }
   .btn-purple-glow:hover:not(:disabled) { transform: translateY(-1px); color: white; }
 
-  .btn-emerald-glow { background: var(--emerald-primary); color: white; border: none; border-radius: 10px; font-weight: 600; transition: 0.3s; }
-  .btn-emerald-glow:hover:not(:disabled) { background: #059669; color: white; }
-
   .btn-outline-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-muted); border-radius: 12px; transition: 0.2s; }
   .btn-outline-glass:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: white; }
 
-  .btn-outline-indigo { border: 1px solid var(--indigo-primary); color: var(--indigo-primary); border-radius: 10px; background: transparent; }
-  .btn-outline-indigo:hover { background: var(--indigo-primary); color: white; }
-
-  .btn-outline-purple { border: 1px solid var(--purple-primary); color: var(--purple-primary); border-radius: 10px; background: transparent; }
-  .btn-outline-purple:hover { background: var(--purple-primary); color: white; }
-
-  .btn-outline-emerald { border: 1px solid var(--emerald-primary); color: var(--emerald-primary); border-radius: 10px; background: transparent; }
-  .btn-outline-emerald:hover { background: var(--emerald-primary); color: white; }
-
-  .badge-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--indigo-primary); font-weight: 600; }
-
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-  .animate-pulse { animation: pulse 2s infinite; }
 </style>
