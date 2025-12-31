@@ -1,5 +1,6 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
 
   export let summary = ""; 
   export let actionItems = []; 
@@ -15,12 +16,64 @@
   let progressPercentage = 0;
   let progressText = "";
 
+  // Toast state
+  let toastVisible = false;
+  let toastMessage = "";
+  let toastType = "success"; 
+
+  // --- NEW LOGIC: Abort Controller ---
+  let controller;
+
+  // --- REFRESH PREVENTION LOGIC ---
+  const handleBeforeUnload = (event) => {
+    if (isExporting) {
+      event.preventDefault();
+      event.returnValue = "Your report is currently being generated. If you leave now, the process will cancel.";
+      return event.returnValue;
+    }
+  };
+
   onMount(async () => {
     const h2cModule = await import('html2canvas');
     const jspdfModule = await import('jspdf');
     html2canvas = h2cModule.default;
     jsPDF = jspdfModule.default;
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // --- NEW LOGIC: Intercept Modal Close ---
+    const modalElement = document.getElementById('shareModal');
+    if (modalElement) {
+      modalElement.addEventListener('hide.bs.modal', (event) => {
+        if (isExporting) {
+          const confirmClose = confirm("A report is being generated. Closing this will stop the operation. Do you want to stop?");
+          if (!confirmClose) {
+            event.preventDefault(); // Keep modal open
+          } else {
+            // User wants to stop
+            if (controller) controller.abort();
+            isExporting = false;
+            exportType = '';
+            emailStatus = '';
+            triggerToast("Operation cancelled", "error");
+          }
+        }
+      });
+    }
   });
+
+  onDestroy(() => {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
+  });
+
+  function triggerToast(msg, type = "success") {
+    toastMessage = msg;
+    toastType = type;
+    toastVisible = true;
+    setTimeout(() => { toastVisible = false; }, 4000);
+  }
 
   async function captureDashboard() {
     progressPercentage = 10;
@@ -35,7 +88,7 @@
     backdrops.forEach(b => b.setAttribute('data-html2canvas-ignore', 'true'));
 
     const canvas = await html2canvas(element, {
-      scale: 1.5, // Slightly reduced scale for faster processing
+      scale: 1.5, 
       useCORS: true,
       backgroundColor: '#0e111d', 
       logging: false,
@@ -48,6 +101,8 @@
 
   async function sendEmail() {
     if (!emailRecipient || isExporting) return;
+    
+    controller = new AbortController(); // Initialize abort controller
     isExporting = true;
     exportType = 'email';
     emailStatus = "sending";
@@ -76,13 +131,18 @@
       progressText = "Uploading to Mail Server...";
       progressPercentage = 85;
 
+      const cleanActionItems = actionItems.map(item => {
+        return typeof item === 'object' ? (item.task || item.text || item.content || JSON.stringify(item)) : item;
+      });
+
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal, // Connect signal to fetch
         body: JSON.stringify({
           recipient: emailRecipient,
           summary: summary,
-          actionItems: actionItems,
+          actionItems: cleanActionItems,
           pdfBase64: pdfBase64
         })
       });
@@ -91,6 +151,7 @@
         progressPercentage = 100;
         progressText = "Sent!";
         emailStatus = "success";
+        triggerToast(`Report sent to ${emailRecipient}`);
         emailRecipient = "";
         setTimeout(() => {
             emailStatus = "";
@@ -100,8 +161,13 @@
         throw new Error("Failed to send");
       }
     } catch (err) {
-      console.error(err);
-      emailStatus = "error";
+      if (err.name === 'AbortError') {
+        console.log('Fetch aborted');
+      } else {
+        console.error(err);
+        emailStatus = "error";
+        triggerToast("Error: Could not send email", "error");
+      }
     } finally {
       isExporting = false;
       exportType = '';
@@ -116,6 +182,7 @@
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width, canvas.height] });
       pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(`Meeting_Analysis_${new Date().toISOString().slice(0, 10)}.pdf`);
+      triggerToast("PDF Downloaded");
     } finally { isExporting = false; exportType = ''; }
   }
 
@@ -128,15 +195,23 @@
       link.download = `Meeting_Analysis_${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
+      triggerToast("Image Downloaded");
     } finally { isExporting = false; exportType = ''; }
   }
 </script>
+
+{#if toastVisible}
+  <div class="custom-toast {toastType}" in:fly={{ y: 50, duration: 400 }} out:fade>
+    <i class="fa-solid {toastType === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} me-2"></i>
+    {toastMessage}
+  </div>
+{/if}
 
 <button class="btn btn-outline-glass w-100 py-2 text-white" data-bs-toggle="modal" data-bs-target="#shareModal">
     <i class="fa-solid fa-share-nodes me-2"></i> Share Result
 </button>
 
-<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="{isExporting ? 'static' : 'true'}">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content glass-card p-2 shadow-lg">
       <div class="modal-header border-0 pb-0">
@@ -205,7 +280,9 @@
       </div>
 
       <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-outline-glass text-white w-100 py-2" data-bs-dismiss="modal">Back to Dashboard</button>
+        <button type="button" class="btn btn-outline-glass text-white w-100 py-2" data-bs-dismiss="modal">
+          {isExporting ? 'Sending Report...' : 'Back to Dashboard'}
+        </button>
       </div>
     </div>
   </div>
@@ -217,7 +294,24 @@
   .x-small { font-size: 0.7rem; }
   .uppercase-tracking { text-transform: uppercase; letter-spacing: 1px; }
   
-  /* Fixed Input Visibility */
+  .custom-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 12px 24px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+  }
+  .custom-toast.success { background: rgba(16, 185, 129, 0.95); border: 1px solid rgba(255,255,255,0.1); }
+  .custom-toast.error { background: rgba(239, 68, 68, 0.95); border: 1px solid rgba(255,255,255,0.1); }
+
   .form-control-custom { 
     background: rgba(255, 255, 255, 0.08) !important; 
     border: 1px solid rgba(255, 255, 255, 0.15) !important; 
@@ -228,14 +322,13 @@
     font-size: 0.9rem;
   }
   .form-control-custom::placeholder { color: rgba(255, 255, 255, 0.4); }
-  .form-control-custom:focus { border-color: #6366f1 !important; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
 
-  /* Progress Bar Styling */
-  .bg-dark-soft { background: rgba(255, 255, 255, 0.05); }
+  .bg-dark-soft { background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; }
   .bg-indigo-glow { background: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
   .text-indigo { color: #818cf8; }
 
-  .btn-indigo-glow { background: #6366f1; color: white; border: none; border-top-right-radius: 12px; border-bottom-right-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+  .btn-indigo-glow { background: #6366f1; color: white; border: none; border-top-right-radius: 12px; border-bottom-right-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: transform 0.1s; }
+  .btn-indigo-glow:active { transform: scale(0.98); }
   .btn-outline-glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 12px; transition: all 0.2s ease; }
   .btn-outline-glass:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: white; border-color: rgba(255, 255, 255, 0.3); }
 </style>

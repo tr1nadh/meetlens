@@ -17,6 +17,7 @@
   import ActionItemsAnalysis from './ActionItemsAnalysis.svelte';
   import DecisionAnalysis from './DecisionAnalysis.svelte';
   import SummaryAnalysis from './SummaryAnalysis.svelte';
+  import TranscriptBlock from './TranscriptBlock.svelte';
 
 
   /* Script logic remains untouched as requested */
@@ -483,59 +484,16 @@ $: currentWordIndex = duration > 0
 
     <div id="analysis-dashboard" class="row g-4">
       <div class="col-lg-7">
-        <div class="card glass-card h-100">
-          <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="text-white fw-bold mb-0">
-                <i class="fa-solid fa-file-lines me-2 text-indigo"></i>
-                Transcript
-                <span class="badge badge-glass ms-2">Editable</span>
-              </h5>
-              <button class="btn btn-sm btn-outline-glass" disabled={!transcript.trim()} on:click={copyTranscript}>
-                <i class={`fa-solid ${copied ? "fa-check" : "fa-copy"} me-1`}></i>
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
+        
+        <TranscriptBlock 
+          {transcript}
+          {speakerMap}
+          {speakerIds}
+          {isPlaying}
+          {highlightWords}
+          {currentWordIndex}
+        />
 
-            {#if speakerIds.length}
-              <div class="mb-3 d-flex flex-wrap gap-2 speaker-chips-container {isPlaying ? 'hide-speakers' : ''}">
-                {#each speakerIds as id}
-                  <button 
-                    class="btn speaker-chip" 
-                    on:click={() => openSpeakerModal(id)}
-                    title="Click to rename"
-                  >
-                    <i class="fa-solid fa-user-tag me-2"></i>
-                    <span class="fw-semibold">{speakerMap[id]}</span>
-                  </button>
-                {/each}
-              </div>
-            {/if}
-
-        <div class="transcript-container position-relative">
-          {#if isPlaying}
-          <div id="highlight-container" class="form-control custom-input transcript-area highlight-mode">
-              <div class="focus-badge">Focus Mode: Listening</div>
-              {#each highlightWords as word, i}
-                <span class={i === currentWordIndex ? 'word-active' : 'word-idle'}>
-                  {word}{' '}
-                </span>
-              {/each}
-            </div>
-          {:else}
-            <textarea
-              class="form-control form-control-custom w-100 custom-input transcript-area"
-              rows="28"
-              spellcheck="false"
-              bind:value={editableTranscript}
-              on:input={handleTranscriptEdit}
-              placeholder="Transcription will appear here..."
-            ></textarea>
-          {/if}
-        </div>
-
-          </div>
-        </div>
       </div>
 
       <div class="col-lg-5">
@@ -889,34 +847,3 @@ $: currentWordIndex = duration > 0
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
   .animate-pulse { animation: pulse 2s infinite; }
 </style>
-
-<div class="modal fade" id="speakerModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content glass-card p-3">
-      <div class="modal-header border-0">
-        <h5 class="modal-title text-white fw-bold">
-          Rename Speaker ({activeSpeakerId})
-        </h5>
-        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <label class="form-label small text-light-muted">Display name</label>
-        <input
-          class="form-control custom-input"
-          bind:value={tempSpeakerName}
-          placeholder="e.g. CEO, Client" />
-      </div>
-
-      <div class="modal-footer border-0">
-        <button class="btn btn-outline-glass" data-bs-dismiss="modal">Cancel</button>
-        <button
-          class="btn btn-indigo-glow"
-          data-bs-dismiss="modal"
-          on:click={saveSpeakerName}>
-          Save
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
