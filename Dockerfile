@@ -19,6 +19,8 @@ ENV GMAIL_APP_PASSWORD="dummy"
 ENV PUBLIC_SUPABASE_URL="https://dummy.supabase.co"
 ENV PUBLIC_SUPABASE_ANON_KEY="dummy"
 ENV SUPABASE_SERVICE_ROLE_KEY="dummy"
+ENV RESEND_API_KEY="dummy"
+ENV MAIL_SENDER="dummy"
 # Add this near your other ENV lines
 ENV ORIGIN=https://meetlensai.up.railway.app
 # -----------------------------------------------------
