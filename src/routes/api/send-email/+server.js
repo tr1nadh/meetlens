@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { json } from '@sveltejs/kit';
-import { GMAIL_ADDRESS, GMAIL_APP_PASSWORD } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private';
 
 export async function POST({ request }) {
     try {
@@ -44,8 +44,8 @@ export async function POST({ request }) {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: GMAIL_ADDRESS,
-                pass: GMAIL_APP_PASSWORD
+                user: env.GMAIL_ADDRESS,
+                pass: env.GMAIL_APP_PASSWORD
             }
         });
 
