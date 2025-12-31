@@ -1,4 +1,3 @@
-
 <div class="enterprise-wrapper">
   <section class="hero-section">
     <div class="container">
@@ -162,44 +161,59 @@
     <div class="container">
       <div class="section-head text-center mb-5">
         <h2 class="text-white fw-bold h1">Simple, transparent pricing</h2>
-        <p class="text-light-muted">Choose the plan that fits your meeting volume.</p>
+        <p class="text-light-muted">No monthly commitments. Pay only for what you use.</p>
       </div>
       <div class="row g-4 justify-content-center">
-        <div class="col-md-5 col-lg-4">
-          <div class="pricing-glass-card">
-            <span class="badge-glass mb-3">Starter</span>
-            <h3 class="text-white fw-bold h2">$0<small class="text-light-muted fs-6">/mo</small></h3>
-            <p class="text-light-muted small">Perfect for trying MeetLens.</p>
+        <div class="col-md-6 col-lg-5">
+          <div class="pricing-glass-card popular text-center">
+            <div class="popular-tag">PAY AS YOU GO</div>
+            <span class="badge-glass mb-3 border-indigo text-indigo">Pay Per Analysis</span>
+            <h3 class="text-white fw-bold h1">₹5<small class="text-light-muted fs-5">/minute</small></h3>
+            <p class="text-light-muted small">Access to all premium AI features for any audio length.</p>
             <hr class="border-secondary-subtle my-4" />
-            <ul class="list-unstyled text-light-muted mb-4">
-              <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> 3 meetings / mo</li>
-              <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Basic Transcripts</li>
-              <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Standard Summaries</li>
-            </ul>
-            <a href="/upload" class="btn btn-outline-glass w-100 py-2">Get Started</a>
-          </div>
-        </div>
-        <div class="col-md-5 col-lg-4">
-          <div class="pricing-glass-card popular">
-            <div class="popular-tag">RECOMMENDED</div>
-            <span class="badge-glass mb-3 border-indigo text-indigo">Pro</span>
-            <h3 class="text-white fw-bold h2">$29<small class="text-light-muted fs-6">/mo</small></h3>
-            <p class="text-light-muted small">For busy professionals.</p>
-            <hr class="border-secondary-subtle my-4" />
-            <ul class="list-unstyled text-white mb-4">
+            <ul class="list-unstyled text-white mb-4 text-start d-inline-block">
               <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Unlimited meetings</li>
               <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Speaker Identification</li>
               <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Action Item Extraction</li>
-              <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Email Insights</li>
+              <li class="mb-3"><i class="fa-solid fa-circle-check text-indigo me-2"></i> Tone & Sentiment Insights</li>
             </ul>
-            <a href="/upload" class="btn btn-indigo-glow w-100 py-2">Go Pro</a>
+            <a href="/upload" class="btn btn-indigo-glow w-100 py-3 mt-2">Get Started</a>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section id="testimonials" class="section">
+    <div class="container">
+      <div class="section-head text-center mb-5">
+        <h2 class="text-white fw-bold h1">User Testimonials</h2>
+        <p class="text-light-muted">Feedback from the Startup Network community.</p>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="testimonial-glass-card">
+            <div class="d-flex align-items-center mb-4">
+              <div class="avatar-circle">S</div>
+              <div class="ms-3">
+                <h3 class="text-white fw-bold mb-0">Space</h3>
+              </div>
+            </div>
+            <div class="testimonial-body">
+              <p class="summary-para fs-5 italic">
+                "Yea if it extracts exact needed info and this would be used by people who has to attend many meetings in a day. For developed countries its okay!"
+              </p>
+            </div>
+            <div class="mt-4">
+              <span class="sentiment-tag positive">Positive Feedback</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-dark-soft">
     <div class="container" style="max-width: 850px;">
       <div class="section-head text-center mb-5">
         <h2 class="text-white fw-bold h1">Frequently Asked Questions</h2>
@@ -251,18 +265,6 @@
           <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
             <div class="accordion-body text-light-muted">
               Both! You can upload MP3, WAV, M4A, MP4, MOV, and AVI files. We also offer direct integrations with Zoom and Microsoft Teams.
-            </div>
-          </div>
-        </div>
-        <div class="accordion-item mb-3">
-          <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q5">
-              Is there a limit on meeting length?
-            </button>
-          </h2>
-          <div id="q5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-            <div class="accordion-body text-light-muted">
-              Free users can upload up to 45 minutes per file. Pro users have a generous limit of 4 hours per meeting to accommodate even the longest workshops.
             </div>
           </div>
         </div>
@@ -350,12 +352,21 @@
   .text-emerald { color: var(--emerald-primary); filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.4)); }
   .icon-glow-wrapper { padding: 40px; background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%); display: inline-block; border-radius: 50%; }
   .step-blob { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); color: #818cf8; border-radius: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 2rem; border: 1px solid rgba(99, 102, 241, 0.3); }
+  .step-blob.purple { color: #c084fc; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); }
+  .step-blob.emerald { color: #34d399; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); }
 
   /* PRICING */
   .pricing-glass-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); padding: 40px; border-radius: 28px; height: 100%; transition: 0.3s; }
   .pricing-glass-card.popular { border: 2px solid var(--indigo-primary); background: rgba(99, 102, 241, 0.08); position: relative; box-shadow: 0 0 30px rgba(99, 102, 241, 0.1); }
   .popular-tag { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--indigo-primary); color: white; padding: 4px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; }
   .badge-glass { display: inline-block; padding: 6px 14px; border-radius: 100px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-glass); font-size: 0.8rem; font-weight: 800; color: white; }
+
+  /* TESTIMONIALS */
+  .testimonial-glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 28px; padding: 32px; transition: transform 0.3s ease; }
+  .avatar-circle { width: 56px; height: 56px; background: var(--indigo-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; border: 2px solid rgba(255,255,255,0.1); }
+  .summary-para { line-height: 1.7; color: #cbd5e1; font-size: 1.1rem; }
+  .sentiment-tag { display: inline-block; padding: 5px 14px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
+  .sentiment-tag.positive { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
   /* FAQ */
   .accordion-dark .accordion-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: 16px; overflow: hidden; margin-bottom: 1rem; }

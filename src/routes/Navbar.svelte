@@ -39,6 +39,9 @@
         <li class="nav-item">
           <a class="nav-link" href="/#pricing">Pricing</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/#testimonials">Testimonials</a>
+        </li>
       </ul>
       
       <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
