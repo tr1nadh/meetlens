@@ -1,27 +1,29 @@
-
-
 import { createServerClient } from '@supabase/ssr'
 import { redirect } from '@sveltejs/kit'
 import { env as publicEnv } from '$env/dynamic/public';
-import { env as privateEnv } from '$env/dynamic/private';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export const handle = async ({ event, resolve }) => {
+  // 1. Initialize Supabase with PUBLIC environment variables
   event.locals.supabase = createServerClient(
-publicEnv.PUBLIC_SUPABASE_URL, 
-  publicEnv.PUBLIC_SUPABASE_ANON_KEY,
-     {
-    cookies: {
-      getAll: () => event.cookies.getAll(),
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          event.cookies.set(name, value, { ...options, path: '/' })
-        })
+    publicEnv.PUBLIC_SUPABASE_URL,
+    publicEnv.PUBLIC_SUPABASE_ANON_KEY,
+    {
+      global: {
+        fetch: (...args) => event.fetch(...args),
       },
-    },
-  })
+      cookies: {
+        getAll: () => event.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            event.cookies.set(name, value, { ...options, path: '/' })
+          })
+        },
+      },
+    }
+  )
 
-  // Helper to safely get the session
+  // 2. Helper to safely get the session
   event.locals.safeGetSession = async () => {
     const { data: { session } } = await event.locals.supabase.auth.getSession()
     if (!session) return { session: null, user: null }
@@ -30,13 +32,11 @@ publicEnv.PUBLIC_SUPABASE_URL,
 
   const { session } = await event.locals.safeGetSession()
 
-  // ROUTE PROTECTION
-  // If no session and trying to access /upload, send to login
-  if (!session && (event.url.pathname === '/upload' || event.url.pathname === '/upload/report')) {
+  // 3. ROUTE PROTECTION
+  if (!session && (event.url.pathname.startsWith('/upload'))) {
     throw redirect(303, '/login')
   }
 
-  // If logged in and trying to access /login, send to upload
   if (session && event.url.pathname === '/login') {
     throw redirect(303, '/upload')
   }
