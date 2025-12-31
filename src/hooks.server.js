@@ -42,6 +42,7 @@ export const handle = async ({ event, resolve }) => {
   }
 
   return resolve(event, {
+    bodySizeLimit: 100 * 1024 * 1024, // 100MB limit
     filterSerializedResponseHeaders(name) {
       return name === 'content-range' || name === 'x-supabase-api-version'
     },
