@@ -37,7 +37,7 @@
   <div class="container">
     <a class="navbar-brand fw-bold" href="/">
       <i class="fa-solid fa-microphone-lines text-indigo me-2"></i>
-      MeetLens
+      Meetlens AI
     </a>
 
     <button 
