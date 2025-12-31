@@ -1,4 +1,4 @@
-# Use Node 20
+# Build Stage
 FROM node:20-slim AS builder
 WORKDIR /app
 
@@ -16,22 +16,30 @@ ENV GCP_PROJECT_ID="dummy"
 ENV LEMONFOX_API_KEY="dummy"
 ENV GMAIL_ADDRESS="dummy"
 ENV GMAIL_APP_PASSWORD="dummy"
-ENV PUBLIC_SUPABASE_URL="dummy"
+ENV PUBLIC_SUPABASE_URL="https://dummy.supabase.co"
 ENV PUBLIC_SUPABASE_ANON_KEY="dummy"
 ENV SUPABASE_SERVICE_ROLE_KEY="dummy"
 # -----------------------------------------------------
 
+# Run build
 RUN npm run build
 
-# Production stage
+# Production Stage
 FROM node:20-slim
 WORKDIR /app
+
+# Copy necessary files from builder
+# We use 'cp -r' logic via Docker's COPY to ensure the directory is handled correctly
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 
+# Railway Specific Networking
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOST=0.0.0.0
 
 EXPOSE 3000
+
+# Start the server
 CMD ["node", "build/index.js"]
