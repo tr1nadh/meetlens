@@ -135,10 +135,8 @@ MeetLens is not a toy project; it is a **Real-World MVP**. It demonstrates:
 
 If you are a judge or recruiter, feel free to explore the code or try the demo!
 
-[Live App](https://meetlensai.up.railway.app/) | [GitHub Repo](https://www.google.com/search?q=https://github.com/your-username/meetlens)
+[Live App](https://meetlensai.up.railway.app/) | [GitHub Repo](https://github.com/tr1nadh/meetlens-ai)
 
 ---
 
 ### ⭐ If you find this project useful, please give it a star!
-
-**Next Step:** Would you like me to help you write a "Technical Challenges" section to explain how you solved the audio-to-transcript highlighting logic for the judges?
